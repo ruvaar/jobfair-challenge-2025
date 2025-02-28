@@ -217,13 +217,3 @@ We will test your solution with additional tests and compare it to other solutio
 In case of successful solution we will invite you for a job interview.
 
 ### We wish you lots of fun and good luck while implementing your solution :)
-
----
-
-## [INTERNO] Medius testiranje
-
-Za testiranje vseh rešitev naenkrat se uporabi `base/PegSolitaireGroupValidation.java`.
-Pred tem je potrebno vse solverje prilepiti v `solver_solutions` direktorij.
-Nato le poženemo program v `PegSolitaireGroupValidation`, ki nad vsakim solverjem požene teste, definirane v direktoriju v spremenljivki `testsFolderPath`.
-
-Rezultati testov se shranijo v novo datoteko `results.csv`.
