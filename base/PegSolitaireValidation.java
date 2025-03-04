@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class PegSolitaireValidation {
@@ -13,70 +14,82 @@ public class PegSolitaireValidation {
 
         String solverFileName = "BasicSolver";
 
-        List<base.TestData> allTests = readTests("tests/public");
-        int testIndex = 0;
+        List<TestData> allTests = readTests("tests/public").stream().sorted(Comparator.comparing(TestData::getId)).toList();
+
+        int successCount = 0;
+        int failedCount = 0;
+
         try {
             Class<?> solverClass = Class.forName(getClassName(solverFileName));
-            if (base.IPegSolitaireSolver.class.isAssignableFrom(solverClass)) {
-                base.IPegSolitaireSolver instance = (base.IPegSolitaireSolver) solverClass.getDeclaredConstructor().newInstance();
-                for (base.TestData test : allTests) {
-                    System.out.println("---------------- TEST " + ++testIndex + " ----------------");
+            if (IPegSolitaireSolver.class.isAssignableFrom(solverClass)) {
+                IPegSolitaireSolver instance = (IPegSolitaireSolver) solverClass.getDeclaredConstructor().newInstance();
+                System.out.println("---------------- TESTS STARTED ----------------");
+                for (TestData test : allTests) {
+                    System.out.printf("[%s]", test.getId());
                     long startPosition = test.getStart();
                     long endPosition = test.getGoal();
                     long start = System.nanoTime();
                     long[] solution = instance.solve(startPosition, endPosition);
                     long executionTime = (System.nanoTime() - start) / 1_000_000;
-                    System.out.println("Execution time: " + executionTime + " ms");
-                    if (validateSolution(solution, startPosition, endPosition, test.isReachable())) {
-                        System.out.println("Solution is valid! Solver found solution in " + solution.length + " steps.");
+
+                    try {
+                        if (validateSolution(solution, startPosition, endPosition, test.isReachable(), true, executionTime)) {
+                            successCount++;
+                        } else {
+                            failedCount++;
+                        }
+                    } catch (Exception e) {
+                        failedCount++;
                     }
                 }
             } else {
                 System.out.println("Solution class does not implement IPegSolitaireSolver!");
             }
-        }
-        catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             System.out.println("Class not found: " + getClassName(solverFileName));
+        } catch (Exception e) {
+            System.out.println("Error" + e.getMessage());
         }
-        catch (Exception e) {
-            System.out.println("There was an error during calculation:" + e.getMessage());
-        }
+        System.out.println("---------------- TEST SUMMARY ----------------");
+        System.out.println("Passed: " + successCount + "/" + allTests.size() + " tests.");
+        System.out.println("Failed: " + failedCount + "/" + allTests.size() + " tests.");
+        System.out.println("--------------- TESTS FINISHED ---------------");
     }
 
     public static String getClassName(String filename) {
         return "solver." + filename;
     }
 
-    public static boolean validateSolution(long[] solution, long start, long end, boolean reachable) {
+    public static boolean validateSolution(long[] solution, long start, long end, boolean reachable, boolean log, long executionTime) {
         if (!reachable) {
-            System.out.println("test marked as unreachable - checking if array is empty");
             if (solution.length == 0) {
+                logResult("+", 0, executionTime, null);
                 return true;
             }
-            System.out.println("test marked as unreachable produced a result.");
+            if (log) logResult("-", 0, 0, "Test marked as unsolvable produced a result");
             return false;
         }
         if (start != solution[0]) {
-            System.out.println("starting position of the board is not the same as defined");
+            if (log) logResult("-", 0, 0, "Starting position of the board is not the same as defined");
             return false;
         }
         if (end != solution[solution.length - 1]) {
-            System.out.println("end position of the board is not the same as defined");
+            if (log) logResult("-", 0, 0, "End position of the board is not the same as defined");
             return false;
         }
         for (int i = 0; i < solution.length - 1; i++) {
-            if (!validateMove(solution[i], solution[i + 1])) {
-                System.out.println("move " + i + " is not valid");
+            if (!validateMove(solution[i], solution[i + 1], i, log)) {
                 return false;
             }
         }
+        logResult("+", solution.length - 1, executionTime, null);
         return true;
     }
 
-    private static boolean validateMove(long before, long after) {
+    private static boolean validateMove(long before, long after, int i, boolean log) {
         long move = before ^ after;
         if (Long.bitCount(move) != 3) {
-            System.out.println("In a valid move exactly 3 positions are changed - invalid move");
+            if (log) logResult("-", 0, 0, "Invalid move: " + i + "(In a valid move exactly 3 positions are changed)");
             return false;
         }
         long positionBefore = before & move;
@@ -89,18 +102,18 @@ public class PegSolitaireValidation {
                 (moveUp << 7) - positionAfter != 0 &&
                 (moveLeft << 1) - positionAfter != 0 &&
                 (moveRight >> 1) - positionAfter != 0) {
-            System.out.println("The move is invalid");
+            if (log) logResult("-", 0, 0, "Invalid move: " + i);
             return false;
         }
         if ((after & 438808218710499L) != 0) {
-            System.out.println("The move contains a peg on an invalid field");
+            if (log) logResult("-", 0, 0, "Invalid move: " + i + "(The move contains a peg on an invalid field)");
             return false;
         }
         return true;
     }
 
-    public static List<base.TestData> readTests(String testsFolder) {
-        List<base.TestData> testData = new ArrayList<>();
+    public static List<TestData> readTests(String testsFolder) {
+        List<TestData> testData = new ArrayList<>();
         File folder = new File(testsFolder);
         if (!folder.exists() || !folder.isDirectory()) {
             System.err.println("Invalid folder path. Please provide a valid directory!");
@@ -124,7 +137,8 @@ public class PegSolitaireValidation {
                     long start = Long.parseLong(line);
                     line = reader.readLine();
                     long end = Long.parseLong(line);
-                    testData.add(new base.TestData(start, end, solveable != 0));
+                    testData.add(new TestData(start, end, solveable != 0, file.getName().replaceAll("\\D+", "")
+                    ));
                 }
             } catch (IOException e) {
                 System.err.println("Error reading the file: " + e.getMessage());
@@ -134,5 +148,33 @@ public class PegSolitaireValidation {
         }
         return testData;
     }
+
+    public static void logResult(String status, int steps, long executionTime, String errorMsg) {
+        final String GREEN = "\u001B[32m";
+        final String RED = "\u001B[31m";
+        final String RESET = "\u001B[0m";
+
+        String color = status.equals("+") ? GREEN : RED;
+
+        if (errorMsg != null && !errorMsg.isEmpty()) {
+            System.out.printf("%s%s[%s]%s[%s]%n",
+                    ".".repeat(30),
+                    color,
+                    status,
+                    RESET,
+                    errorMsg
+            );
+        } else {
+            System.out.printf("%s%s[%s]%s[steps: %d][%d ms]%n",
+                    ".".repeat(30),
+                    color,
+                    status,
+                    RESET,
+                    steps,
+                    executionTime
+            );
+        }
+    }
+
 
 }

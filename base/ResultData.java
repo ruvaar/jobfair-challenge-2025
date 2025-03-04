@@ -9,6 +9,8 @@ public class ResultData {
     private String surname;
     private List<ResultTestData> results;
     private double averageExecutionTime;
+    private int successCount;
+    private int failedCount;
 
     public ResultData(String name, String surname) {
         this.name = name;
@@ -40,6 +42,22 @@ public class ResultData {
 
     public List<ResultTestData> getResults() {
         return results;
+    }
+
+    public int getSuccessCount() {
+        return successCount;
+    }
+
+    public int getFailedCount() {
+        return failedCount;
+    }
+
+    public void setSuccessCount(int successCount) {
+        this.successCount = successCount;
+    }
+
+    public void setFailedCount(int failedCount) {
+        this.failedCount = failedCount;
     }
 
     public double getAverageExecutionTime() {
@@ -76,4 +94,8 @@ public class ResultData {
             this.error = error;
         }
     }
+
+    public record TestSolution(long[] solutionSteps, long executionTime) {
+    }
+
 }

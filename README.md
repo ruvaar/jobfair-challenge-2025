@@ -87,12 +87,16 @@ Bodite pozorni:
 
 ### Testiranje
 
+Vsaka datoteka testa vsebuje 3 vrstice. V 1. vrstici je številka (bit), ki pove ali je test rešljiv, v 2. vrstici začetno stanje plošče, v 3. vrstici pa končno stanje plošče.
+
+V direktoriju `tests/public` najdete 10 testov. Prvih šest testov (1-6) vsebuje veljavno rešitev. Število korakov do končne rešitve se zvečuje s številko testa. Zadnji 4 testi (7-10) vsebujejo neveljavne rešitve, torej končno stanje ni dosegljivo z začetnega stanja.
+
 Testiranje in validiranje vrnjenih potez se preverja v datoteki `/base/PegSolitaireValidation.java`.
 Vse, kar morate narediti, da v spremenljivko `solverFileName` zapišete ime svojega razreda in java datoteke in jo odložite v `solver` direktorij.
 Nato le poženete program v `PegSolitaireValidation.java` in v konzolo boste dobili poročilo posameznega testa, vključno s časom izvajanja in morebitnimi napakami.
 
 Teste lahko tudi prilagodite oz. napišete nove.
-V direktoriju `tests/public` popravite ali dodajte novo `.txt` datoteko, kjer je v 1. vrstici številka (bit), ali je test rešljiv, v 2. vrstici začetno stanje, v 3. vrstici pa končno stanje plošče.
+V direktoriju `tests/public` popravite ali dodajte novo `.txt` datoteko.
 Program `PegSolitaireValidation.java` bo samodejno sprožil teste za vse datoteke v navedenem direktoriju.
 
 ### Oddaja rešitve
@@ -198,12 +202,16 @@ Be careful about:
 
 ### Testing
 
+Every test file contains 3 rows. In the first row there is a number (bit) representing whether the test is solvable, in the second row number represent the initial board state and the third row contains final state of the board.
+
+In the directory `tests/public` there are 10 public tests. The first six tests (1-6) contain a solvable solution. The amount of steps to get to the final state increases with the test number. The last 4 tests (7-10) contain final states that are not reachable with the provided starting state.
+
 You can test your solution in `PegSolitaireValidation.java`.
 Simply write the name of your solver class and java fila in the variable `solverFileName`, put the file in the `solver` directory and run the program.
 The program will validate every move and display the time it took your solver to give a solution, including possible information about move validation.
 
 Tests can be adjusted/added.
-Simply edit or add a `.txt` file in the `tests/public` directory, where in the first row there is a number (bit) representing whether the test is solvable, in the second row number represent the initial board state and the third row contains final state of the board.
+Simply edit or add a `.txt` file in the `tests/public` directory.
 The program `PegSolitaireValidation.java` will automatically run all the tests in the directory.
 
 ### Solution submission
