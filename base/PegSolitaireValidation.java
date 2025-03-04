@@ -25,20 +25,21 @@ public class PegSolitaireValidation {
                 IPegSolitaireSolver instance = (IPegSolitaireSolver) solverClass.getDeclaredConstructor().newInstance();
                 System.out.println("---------------- TESTS STARTED ----------------");
                 for (TestData test : allTests) {
-                    System.out.printf("[%s]", test.getId());
-                    long startPosition = test.getStart();
-                    long endPosition = test.getGoal();
-                    long start = System.nanoTime();
-                    long[] solution = instance.solve(startPosition, endPosition);
-                    long executionTime = (System.nanoTime() - start) / 1_000_000;
-
                     try {
+                        System.out.printf("[%s]", test.getId());
+                        long startPosition = test.getStart();
+                        long endPosition = test.getGoal();
+                        long start = System.nanoTime();
+                        long[] solution = instance.solve(startPosition, endPosition);
+                        long executionTime = (System.nanoTime() - start) / 1_000_000;
+
                         if (validateSolution(solution, startPosition, endPosition, test.isReachable(), true, executionTime)) {
                             successCount++;
                         } else {
                             failedCount++;
                         }
                     } catch (Exception e) {
+                        logResult("-", 0, 0, "Error: " + e.getMessage());
                         failedCount++;
                     }
                 }
@@ -48,7 +49,7 @@ public class PegSolitaireValidation {
         } catch (ClassNotFoundException e) {
             System.out.println("Class not found: " + getClassName(solverFileName));
         } catch (Exception e) {
-            System.out.println("Error" + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
         System.out.println("---------------- TEST SUMMARY ----------------");
         System.out.println("Passed: " + successCount + "/" + allTests.size() + " tests.");
@@ -67,6 +68,10 @@ public class PegSolitaireValidation {
                 return true;
             }
             if (log) logResult("-", 0, 0, "Test marked as unsolvable produced a result");
+            return false;
+        }
+        if (solution.length == 0) {
+            if (log) logResult("-", 0, 0, "The solution is an empty array, but a value was expected");
             return false;
         }
         if (start != solution[0]) {
@@ -175,6 +180,5 @@ public class PegSolitaireValidation {
             );
         }
     }
-
 
 }
