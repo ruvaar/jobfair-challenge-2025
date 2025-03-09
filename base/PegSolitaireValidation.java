@@ -12,7 +12,7 @@ public class PegSolitaireValidation {
 
     public static void main(String[] args) {
 
-        String solverFileName = "BasicSolver";
+        String solverFileName = "DFSSolver";
 
         List<TestData> allTests = readTests("tests/public").stream().sorted(Comparator.comparing(TestData::getId)).toList();
 
